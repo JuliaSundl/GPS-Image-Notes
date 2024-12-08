@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/noteEdit"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/blue"
+        app:titleTextColor="@color/white"
+        android:text=""/>
+
+    <EditText
+        android:id="@+id/editTitle"
+        style="@style/ListItem.NewTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/title"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/editMessage"
+        style="@style/ListItem.NewMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/message"
+        android:inputType="text" />
+
+    <Button
+        android:id="@+id/addButton"
+        style="@style/ListItem.AddButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add" />
+
+    <Button
+        android:id="@+id/locationButton"
+        style="@style/ListItem.AddButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/location"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/latitudeTextView"
+        style="@style/ListItem.NewMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/latitude" />
+
+    <TextView
+        android:id="@+id/longitudeTextView"
+        style="@style/ListItem.NewMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/longitude" />
+
+    <Button
+        android:id="@+id/selectImageButton"
+        style="@style/ListItem.AddButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btImage"
+        android:layout_marginTop="16dp" />
+
+    <ImageView
+        android:id="@+id/noteImageView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:scaleType="centerCrop"/>
+<!--        android:src="@drawable/ic_placeholder"-->
+
+</LinearLayout>

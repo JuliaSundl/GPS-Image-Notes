@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">GPS-Image-Notes</string>
+    <string name="login">Anmelden</string>
+    <string name="signed_in">Angemeldet</string>
+    <string name="title">Notiz-Titel</string>
+    <string name="message">Text</string>
+    <string name="add">Hinzu</string>
+    <string name="delete">Löschen</string>
+    <string name="saved">Notiz gespeichert</string>
+    <string name="back">Zurück</string>
+    <string name="deleted">Notiz gelöscht</string>
+    <string name="updated">Notiz geändert</string>
+    <string name="inserted">Notiz hinzugefügt</string>
+    <string name="insertValues">Bitte gib einen Titel und einen Text ein</string>
+
+    <string name="label_title">Titel:</string>
+    <string name="label_message">Nachricht:</string>
+    <string name="empty">Titel und Nachricht dürfen nicht leer sein!</string>
+
+    <string name="confirm_delete">Löschen bestätigen</string>
+    <string name="confirm_delete_message">Möchten Sie diese Notiz wirklich löschen?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+    <string name="error_deleted">Es wurde kein Eintrag ausgewählt!</string>
+
+    <string name="location">Zeige Standort</string>
+    <string name="latitude">Breitengrad</string>
+    <string name="longitude">Längengrad</string>
+    <string name="available">Nicht verfügbar</string>
+    <string name="error">Fehler</string>
+    <string name="permission">"Zugriff verweigert"</string>
+
+    <string name="btImage">"Bild auswählen"</string>
+</resources>

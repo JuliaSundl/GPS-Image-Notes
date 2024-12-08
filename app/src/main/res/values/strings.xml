@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">GPS-Image-Notes</string>
+    <string name="login">Login</string>
+    <string name="signed_in">Signed in</string>
+    <string name="title">Note-Title</string>
+    <string name="message">Text</string>
+    <string name="add">New</string>
+    <string name="delete">Delete</string>
+    <string name="saved">Note saved</string>
+    <string name="back">Return</string>
+    <string name="deleted">Note deleted</string>
+    <string name="updated">Note updated</string>
+    <string name="inserted">Note added</string>
+    <string name="insertValues">Please send Title and Message</string>
+
+    <string name="label_title">Title:</string>
+    <string name="label_message">Message:</string>
+    <string name="empty">Title and Message cannot be empty!</string>
+
+    <string name="confirm_delete">Confirm Delete</string>
+    <string name="confirm_delete_message">Are you sure you want to delete this note?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="error_deleted">No entry was selected!</string>
+
+    <string name="location">Show Location</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="available">Not available</string>
+    <string name="error">Error</string>
+    <string name="permission">"Permission denied"</string>
+
+    <string name="btImage">"Select Image"</string>
+</resources>
