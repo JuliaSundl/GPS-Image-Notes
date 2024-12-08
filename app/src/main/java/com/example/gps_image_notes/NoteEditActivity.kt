@@ -20,21 +20,27 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.File
-import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class NoteEditActivity : AppCompatActivity(){
 
     var noteId: Int = -1
+    var currentPhotoPath: String? = null
     private lateinit var db: NoteDatabase
     private lateinit var noteDao: NoteDao
 
@@ -98,26 +104,30 @@ class NoteEditActivity : AppCompatActivity(){
 
             noteImageView = findViewById(R.id.noteImageView)
 //            noteImageView.setImageResource(R.drawable.ic_placeholder)
+            Toast.makeText(this, "ImagePath from DB: $noteImage", Toast.LENGTH_LONG).show()
 
             // Show saved Image if available
             if (noteImage.isNotEmpty()) {
-//                Log.d("NoteEditActivity", "Image URI: $noteImage")
                 try {
+                    // Wenn der gespeicherte Bildpfad nicht leer ist, versuche ihn in eine Uri zu konvertieren
                     imageUri = Uri.parse(noteImage)
-                    Toast.makeText(this, "Image URI: $imageUri", Toast.LENGTH_LONG).show()
-                    val file = File(Uri.parse(noteImage).path ?: "")
+                    // Prüfen, ob die Datei existiert
+                    val file = File(imageUri?.path ?: "")
                     if (file.exists()) {
-//                    Toast.makeText(this, "Image URI: $imageUri", Toast.LENGTH_LONG).show()
+                        // Wenn die Datei existiert, setze die URI im ImageView
                         noteImageView.setImageURI(imageUri)
-                    }else {
+                    } else {
+                        // Wenn die Datei nicht gefunden wurde, zeige eine Fehlernachricht an
                         Toast.makeText(this, "Image file not found", Toast.LENGTH_SHORT).show()
+                        noteImageView.setImageResource(R.drawable.ic_placeholder) // Platzhalterbild
                     }
                 } catch (e: Exception) {
-//                    Log.e("NoteEditActivity", "Error setting image URI", e)
-                    Toast.makeText(this, "Fehler bei Image-Anzeige", Toast.LENGTH_SHORT).show()
-                    noteImageView.setImageResource(R.drawable.ic_placeholder)
+                    // Fehler beim Laden des Bildes
+                    Toast.makeText(this, "Fehler bei der Bildanzeige", Toast.LENGTH_SHORT).show()
+                    noteImageView.setImageResource(R.drawable.ic_placeholder) // Platzhalterbild
                 }
             } else {
+                // Wenn kein Bildpfad vorhanden ist, zeige das Platzhalterbild an
                 noteImageView.setImageResource(R.drawable.ic_placeholder)
             }
         }
@@ -140,7 +150,6 @@ class NoteEditActivity : AppCompatActivity(){
                 return@setOnClickListener
             }
 
-            val imagePath = imageUri?.toString() // Convert Image-URI to String
 //            Toast.makeText(this@NoteEditActivity, "ImagePath: $imagePath", Toast.LENGTH_LONG).show()
 
             val mediaPlayer: MediaPlayer
@@ -148,14 +157,14 @@ class NoteEditActivity : AppCompatActivity(){
             // Insert or update data in the database
             if (noteId >= 0) {
                 // Update Note
-                noteDao.update(Note(newTitle, newMessage, newLatitude, newLongitude, imagePath, noteId))
+                noteDao.update(Note(newTitle, newMessage, newLatitude, newLongitude, currentPhotoPath, noteId))
                 Toast.makeText(this@NoteEditActivity, R.string.updated, Toast.LENGTH_LONG).show()
 
                 // Play update sound
                 mediaPlayer = MediaPlayer.create(this, R.raw.gunshot_sound)
             } else {
                 // Insert Note
-                noteDao.insertAll(Note(newTitle, newMessage, newLatitude, newLongitude, imagePath))
+                noteDao.insertAll(Note(newTitle, newMessage, newLatitude, newLongitude, currentPhotoPath))
                 Toast.makeText(this@NoteEditActivity, R.string.inserted, Toast.LENGTH_LONG).show()
 
                 // Play insert sound
@@ -232,7 +241,7 @@ class NoteEditActivity : AppCompatActivity(){
         builder.setPositiveButton(R.string.yes){ dialog, _ ->
             // Delete Note, if ID is valid
             if (noteId >= 0) {
-                noteDao.delete(Note(id = noteId, title = "", message = "", image = ""))
+                noteDao.delete(Note(id = noteId, title = "", message = "", latitude = "", longitude = "", image = ""))
                 MediaPlayer.create(this, R.raw.gunshot_sound).start()
                 Toast.makeText(this@NoteEditActivity, R.string.deleted, Toast.LENGTH_LONG).show()
                 finish()
@@ -302,11 +311,21 @@ class NoteEditActivity : AppCompatActivity(){
 
     @SuppressLint("QueryPermissionsNeeded")
     private fun takePhoto() {
-        // Intent for Opening Camera
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(packageManager) != null) {
-            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (takePictureIntent.resolveActivity(packageManager) != null) {
+            val photoFile: File? = try {
+                createImageFile() // Diese Methode erstellt die Bilddatei
+            } catch (ex: IOException) {
+                Log.e("NoteEditActivity", "Error occurred while creating the file", ex)
+                null
+            }
+            photoFile?.also {
+                val photoURI: Uri = FileProvider.getUriForFile(this, "com.example.gps_image_notes.fileprovider", it)
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+            }
         } else {
+            Log.e("NoteEditActivity", "No activity found to handle the intent")
             Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show()
         }
     }
@@ -316,37 +335,90 @@ class NoteEditActivity : AppCompatActivity(){
         startActivityForResult(intent, REQUEST_IMAGE_PICK)
     }
 
+    /**
+     * Creates an image file to store the captured image.
+     * @return The created image file.
+     * @throws IOException If an error occurs while creating the file.
+     */
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply { currentPhotoPath = absolutePath }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 REQUEST_IMAGE_CAPTURE -> {
-                    val bitmap = data?.extras?.get("data") as Bitmap
-                    val uri = saveImageToInternalStorage(bitmap) // Save and mount URI
-                    imageUri = uri
-                    noteImageView.setImageURI(uri) // Show Image
+                    val file = File(currentPhotoPath)
+                    if (file.exists()) {
+                        imageUri = Uri.fromFile(file)
+                        noteImageView.setImageURI(imageUri) // Das Bild anzeigen
+                    } else {
+                        Toast.makeText(this, "Error: Image not found", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 REQUEST_IMAGE_PICK -> {
                     val uri = data?.data
-                    if (uri != null) {
-                        imageUri = uri
-                        noteImageView.setImageURI(uri) // Show Image
+                    uri?.let {
+                        currentPhotoPath = getPathFromUri(it)
+                        noteImageView.setImageURI(it)
                     }
                 }
             }
         }
     }
 
-    private fun saveImageToInternalStorage(bitmap: Bitmap): Uri {
-        val filename = "${System.currentTimeMillis()}.jpg"
-//        Toast.makeText(this, "Filename: $filename", Toast.LENGTH_LONG).show()
-        val file = File(filesDir, filename)
-        val fos = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-        fos.close()
-//        val helpUri = Uri.fromFile(file)
-//        Toast.makeText(this, "Uri: $helpUri", Toast.LENGTH_LONG).show()
-//        return helpUri
-        return Uri.fromFile(file)
+    /**
+     * Retrieves the file path from a URI.
+     * @param uri The URI to retrieve the path from.
+     * @return The file path.
+     */
+    private fun getPathFromUri(uri: Uri): String {
+        var path = ""
+        val projection = arrayOf(MediaStore.Images.Media.DATA)
+        contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                path = cursor.getString(columnIndex)
+            }
+        }
+        return path
     }
+
+//    private fun saveImageToInternalStorage(bitmap: Bitmap): Uri {
+//        val filename = "${System.currentTimeMillis()}.jpg"
+////        Toast.makeText(this, "Filename: $filename", Toast.LENGTH_LONG).show()
+//        val file = File(filesDir, filename)
+//        val fos = FileOutputStream(file)
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+//        fos.close()
+////        val helpUri = Uri.fromFile(file)
+////        Toast.makeText(this, "Uri: $helpUri", Toast.LENGTH_LONG).show()
+////        return helpUri
+//        return Uri.fromFile(file)
+//    }
+
+    /**
+     * Checks and requests necessary permissions for camera and storage access.
+     * @return True if permissions are already granted, false otherwise.
+     */
+    private fun checkAndRequestPermissions(): Boolean {
+        val permissions = mutableListOf(Manifest.permission.CAMERA)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        val listPermissionsNeeded = permissions.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
+        return if (listPermissionsNeeded.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toTypedArray(), 0)
+            false
+        } else {
+            true
+        }
+    }
+
 }
