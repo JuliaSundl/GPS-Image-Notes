@@ -32,6 +32,9 @@ import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -79,56 +82,12 @@ class NoteEditActivity : AppCompatActivity(){
 
         // Get ID from selected Note
         noteId = intent.getIntExtra("id", -1)
-        lateinit var noteTitle: String
-        lateinit var noteMessage: String
-        lateinit var noteLongitude: String
-        lateinit var noteLatitude: String
-        lateinit var noteImage: String
+        lateinit var note: Note
 
         if (noteId >=0) {
-            val note = noteDao.getNoteByID(noteId)
-            noteTitle = note.title.toString()
-            noteMessage = note.message.toString()
-            noteLongitude = note.longitude.orEmpty()
-            noteLatitude = note.latitude.orEmpty()
-            noteImage = note.image.orEmpty()
-
-            // Show Data in Editfields and TextViews
-            findViewById<EditText>(R.id.editTitle).setText(noteTitle)
-            findViewById<EditText>(R.id.editMessage).setText(noteMessage)
-
-            latitudeTextView = findViewById(R.id.latitudeTextView)
-            longitudeTextView = findViewById(R.id.longitudeTextView)
-            latitudeTextView.text = noteLatitude
-            longitudeTextView.text = noteLongitude
-
-            noteImageView = findViewById(R.id.noteImageView)
-//            noteImageView.setImageResource(R.drawable.ic_placeholder)
-            Toast.makeText(this, "ImagePath from DB: $noteImage", Toast.LENGTH_LONG).show()
-
-            // Show saved Image if available
-            if (noteImage.isNotEmpty()) {
-                try {
-                    // Wenn der gespeicherte Bildpfad nicht leer ist, versuche ihn in eine Uri zu konvertieren
-                    imageUri = Uri.parse(noteImage)
-                    // Prüfen, ob die Datei existiert
-                    val file = File(imageUri?.path ?: "")
-                    if (file.exists()) {
-                        // Wenn die Datei existiert, setze die URI im ImageView
-                        noteImageView.setImageURI(imageUri)
-                    } else {
-                        // Wenn die Datei nicht gefunden wurde, zeige eine Fehlernachricht an
-                        Toast.makeText(this, "Image file not found", Toast.LENGTH_SHORT).show()
-                        noteImageView.setImageResource(R.drawable.ic_placeholder) // Platzhalterbild
-                    }
-                } catch (e: Exception) {
-                    // Fehler beim Laden des Bildes
-                    Toast.makeText(this, "Fehler bei der Bildanzeige", Toast.LENGTH_SHORT).show()
-                    noteImageView.setImageResource(R.drawable.ic_placeholder) // Platzhalterbild
-                }
-            } else {
-                // Wenn kein Bildpfad vorhanden ist, zeige das Platzhalterbild an
-                noteImageView.setImageResource(R.drawable.ic_placeholder)
+            CoroutineScope(Dispatchers.IO).launch {
+                note = noteDao.getNoteByID(noteId)
+                note.let { runOnUiThread { showNoteDetails(it) } }
             }
         }
 
@@ -150,8 +109,6 @@ class NoteEditActivity : AppCompatActivity(){
                 return@setOnClickListener
             }
 
-//            Toast.makeText(this@NoteEditActivity, "ImagePath: $imagePath", Toast.LENGTH_LONG).show()
-
             val mediaPlayer: MediaPlayer
 
             // Insert or update data in the database
@@ -161,7 +118,7 @@ class NoteEditActivity : AppCompatActivity(){
                 Toast.makeText(this@NoteEditActivity, R.string.updated, Toast.LENGTH_LONG).show()
 
                 // Play update sound
-                mediaPlayer = MediaPlayer.create(this, R.raw.gunshot_sound)
+                mediaPlayer = MediaPlayer.create(this, R.raw.match)
             } else {
                 // Insert Note
                 noteDao.insertAll(Note(newTitle, newMessage, newLatitude, newLongitude, currentPhotoPath))
@@ -204,9 +161,16 @@ class NoteEditActivity : AppCompatActivity(){
 
         // Choose Image oder take Picture
         selectImageButton.setOnClickListener {
-            val options = arrayOf("Take Photo", "Choose from Gallery")
+//            val photo = "" + R.string.photo
+//            val gallery = "" + R.string.gallery
+//            Toast.makeText(this@NoteEditActivity, "Photo:  $photo", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(this@NoteEditActivity, "Gallery:  $gallery", Toast.LENGTH_SHORT).show()
+
+//            val options = arrayOf(R.string.photo, R.string.gallery)
+            val options = arrayOf("Take Photo","From Gallery")
             val builder = AlertDialog.Builder(this)
-            builder.setTitle("Add Image")
+
+            builder.setTitle(R.string.chooseSource)
             builder.setItems(options) { _, which ->
                 when (which) {
                     0 -> takePhoto() // Camera
@@ -214,6 +178,35 @@ class NoteEditActivity : AppCompatActivity(){
                 }
             }
             builder.show()
+        }
+    }
+
+    private fun showNoteDetails(note: Note) {
+
+        var noteTitle:String = note.title.toString()
+        var noteMessage:String  = note.message.toString()
+        var noteLongitude:String = note.longitude.orEmpty()
+        var noteLatitude:String = note.latitude.orEmpty()
+
+        // Show Data in Editfields and TextViews
+        findViewById<EditText>(R.id.editTitle).setText(noteTitle)
+        findViewById<EditText>(R.id.editMessage).setText(noteMessage)
+
+        latitudeTextView = findViewById(R.id.latitudeTextView)
+        longitudeTextView = findViewById(R.id.longitudeTextView)
+        latitudeTextView.text = noteLatitude
+        longitudeTextView.text = noteLongitude
+
+        noteImageView = findViewById(R.id.noteImageView)
+
+        note.image?.let { path ->
+            val file = File(path)
+            if (file.exists()) {
+                val uri = Uri.fromFile(file)
+                noteImageView.setImageURI(uri)
+            } else {
+                noteImageView.setImageResource(R.drawable.ic_placeholder)
+            }
         }
     }
 
@@ -335,11 +328,6 @@ class NoteEditActivity : AppCompatActivity(){
         startActivityForResult(intent, REQUEST_IMAGE_PICK)
     }
 
-    /**
-     * Creates an image file to store the captured image.
-     * @return The created image file.
-     * @throws IOException If an error occurs while creating the file.
-     */
     @Throws(IOException::class)
     private fun createImageFile(): File {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
@@ -353,9 +341,10 @@ class NoteEditActivity : AppCompatActivity(){
             when (requestCode) {
                 REQUEST_IMAGE_CAPTURE -> {
                     val file = File(currentPhotoPath)
+//                    Toast.makeText(this, "Akt.Photo: $currentPhotoPath", Toast.LENGTH_LONG).show()
                     if (file.exists()) {
                         imageUri = Uri.fromFile(file)
-                        noteImageView.setImageURI(imageUri) // Das Bild anzeigen
+                        noteImageView.setImageURI(imageUri)
                     } else {
                         Toast.makeText(this, "Error: Image not found", Toast.LENGTH_SHORT).show()
                     }

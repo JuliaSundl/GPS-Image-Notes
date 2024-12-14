@@ -28,7 +28,10 @@
     <string name="longitude">Longitude</string>
     <string name="available">Not available</string>
     <string name="error">Error</string>
-    <string name="permission">"Permission denied"</string>
+    <string name="permission">Permission denied</string>
 
-    <string name="btImage">"Select Image"</string>
+    <string name="btImage">Select Image</string>
+    <string name="photo">"Take Photo"</string>
+    <string name="gallery">"From Gallery"</string>
+    <string name="chooseSource">Choose Source</string>
 </resources>

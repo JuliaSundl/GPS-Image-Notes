@@ -28,7 +28,10 @@
     <string name="longitude">Längengrad</string>
     <string name="available">Nicht verfügbar</string>
     <string name="error">Fehler</string>
-    <string name="permission">"Zugriff verweigert"</string>
+    <string name="permission">Zugriff verweigert</string>
 
-    <string name="btImage">"Bild auswählen"</string>
+    <string name="btImage">Bild auswählen</string>
+    <string name="photo">"Foto machen"</string>
+    <string name="gallery">"Aus Galerie"</string>
+    <string name="chooseSource">Quelle auswählen</string>
 </resources>
