@@ -245,6 +245,7 @@ class NoteEditActivity : AppCompatActivity(){
         return super.onOptionsItemSelected(item)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun showDeleteDialog() {
         // Show Confirm-Dialog
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
