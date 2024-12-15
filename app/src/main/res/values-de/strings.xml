@@ -4,7 +4,8 @@
     <string name="signed_in">Angemeldet</string>
     <string name="title">Notiz-Titel</string>
     <string name="message">Text</string>
-    <string name="add">Speichern</string>
+    <string name="addButton">Speichern</string>
+    <string name="addItem">Neue Notiz</string>
     <string name="delete">Löschen</string>
     <string name="saved">Notiz gespeichert</string>
     <string name="back">Zurück</string>

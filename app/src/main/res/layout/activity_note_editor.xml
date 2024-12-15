@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- Toolbar bleibt oben fixiert -->
+    <!-- Toolbar remains fixed at the top -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar2"
         android:layout_width="match_parent"
@@ -17,7 +17,7 @@
         android:layout_gravity="top"
         android:text="" />
 
-    <!-- Der scrollbare Bereich -->
+    <!-- Scrollable Area -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -54,7 +54,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/blue"
-                android:text="@string/add" />
+                android:text="@string/addButton" />
 
             <Button
                 android:id="@+id/locationButton"
@@ -91,15 +91,6 @@
                 android:text="@string/btImage"
                 android:backgroundTint="@color/glootie"
                 android:layout_marginTop="16dp" />
-
-<!--            <ImageView-->
-<!--                android:id="@+id/noteImageView"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginTop="16dp"-->
-<!--                android:scaleType="centerInside"-->
-<!--                android:adjustViewBounds="true" />-->
-            <!-- android:src="@drawable/ic_placeholder" -->
 
             <ImageView
                 android:id="@+id/noteImageView"

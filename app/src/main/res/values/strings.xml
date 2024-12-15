@@ -4,7 +4,8 @@
     <string name="signed_in">Signed in</string>
     <string name="title">Note-Title</string>
     <string name="message">Text</string>
-    <string name="add">Save</string>
+    <string name="addButton">Save</string>
+    <string name="addItem">Add Note</string>
     <string name="delete">Delete</string>
     <string name="saved">Note saved</string>
     <string name="back">Return</string>

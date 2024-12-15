@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="14dp"
-        android:backgroundTint="@color/blue"
+        android:backgroundTint="@color/glootie"
         style="@style/Button"
         android:text="@string/login"/>
 </FrameLayout>
