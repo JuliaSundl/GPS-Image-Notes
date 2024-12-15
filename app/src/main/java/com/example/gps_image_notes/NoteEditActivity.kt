@@ -28,7 +28,6 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
 import android.widget.ImageView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -55,12 +54,13 @@ class NoteEditActivity : AppCompatActivity(){
     private var showLocation: Boolean = false
     private var showWeather: Boolean = false
 
-    private val REQUEST_IMAGE_CAPTURE = 1
-    private val REQUEST_IMAGE_PICK = 2
+    private val REQUEST_TAKE_PHOTO = 101
+    private val REQUEST_PICK_FROM_GALLERY = 102
+    private val REQUEST_LOCATION_WEATHER = 100
     private var imageUri: Uri? = null // Saves URI of the Image
     private lateinit var noteImageView: ImageView
 
-    @SuppressLint("NewApi", "MissingInflatedId")
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Connect Main-File with Layout-File
@@ -132,11 +132,6 @@ class NoteEditActivity : AppCompatActivity(){
 
             // Vibrate
             vibrate()
-//            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-//            if (vibrator.hasVibrator()) {
-//                val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
-//                vibrator.vibrate(vibrationEffect)
-//            }
 
             // Finish Activity
             finish()
@@ -187,22 +182,34 @@ class NoteEditActivity : AppCompatActivity(){
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun vibrate() {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        if (vibrator.hasVibrator()) {
-            val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
-            vibrator.vibrate(vibrationEffect)
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+
+        if (vibrator != null && vibrator.hasVibrator()) { // Check if the device supports vibration
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // For Android O and higher
+                val vibrationEffect = VibrationEffect.createOneShot(
+                    500, // Duration in milliseconds
+                    VibrationEffect.DEFAULT_AMPLITUDE // Default vibration strength
+                )
+                vibrator.vibrate(vibrationEffect)
+            } else {
+                // For devices below Android O
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(500) // Duration in milliseconds
+            }
+        } else {
+            Toast.makeText(this, "Vibration not supported on this device", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun showNoteDetails(note: Note) {
-        var noteTitle:String = note.title.toString()
-        var noteMessage:String  = note.message.toString()
-        var noteLongitude:String = note.longitude.orEmpty()
-        var noteLatitude:String = note.latitude.orEmpty()
-        var noteTemp:String = note.temp.orEmpty()
-        var noteWeather:String = note.weather.orEmpty()
+        val noteTitle:String = note.title.toString()
+        val noteMessage:String  = note.message.toString()
+        val noteLongitude:String = note.longitude.orEmpty()
+        val noteLatitude:String = note.latitude.orEmpty()
+        val noteTemp:String = note.temp.orEmpty()
+        val noteWeather:String = note.weather.orEmpty()
 
         // Show Data in Editfields and TextViews
         findViewById<EditText>(R.id.editTitle).setText(noteTitle)
@@ -245,10 +252,9 @@ class NoteEditActivity : AppCompatActivity(){
         return super.onOptionsItemSelected(item)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun showDeleteDialog() {
         // Show Confirm-Dialog
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        val builder = AlertDialog.Builder(this)
         builder.setTitle(R.string.confirm_delete)
         builder.setMessage(R.string.confirm_delete_message)
 
@@ -318,24 +324,28 @@ class NoteEditActivity : AppCompatActivity(){
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 0 && grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-            takePhoto()
-        } else if (requestCode == 1 && grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-            pickFromGallery()
-        } else if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (showLocation) { getLocation() }
-            if (showWeather) { getWeatherInfo() }
-        } else if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-            if (showLocation) {
-                latitudeTextView.text = getString(R.string.permission)
-                longitudeTextView.text = getString(R.string.permission)
-            }
-            if (showWeather) {
-                temperatureTextView.text = getString(R.string.permission)
-                weatherDescTextView.text = getString(R.string.permission)
-            }
-        } else {
+        if (grantResults.isEmpty() || grantResults.any { it == PackageManager.PERMISSION_DENIED }) {
             Toast.makeText(this, R.string.permission, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        when (requestCode) {
+            REQUEST_TAKE_PHOTO -> {
+                takePhoto() // Permission granted for taking a photo
+            }
+            REQUEST_PICK_FROM_GALLERY -> {
+                pickFromGallery() // Permission granted for picking an image
+            }
+            REQUEST_LOCATION_WEATHER -> {
+                if (showLocation) {
+                    getLocation() // Permission granted for location
+                } else if (showWeather) {
+                    getWeatherInfo() // Permission granted for weather
+                }
+            }
+            else -> {
+                Toast.makeText(this, R.string.permission, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -372,9 +382,8 @@ class NoteEditActivity : AppCompatActivity(){
         }
     }
 
-    @SuppressLint("QueryPermissionsNeeded")
     private fun takePhoto() {
-        if (checkAndRequestPermissions()) {
+        if (checkAndRequestPermissions(REQUEST_TAKE_PHOTO)) {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (takePictureIntent.resolveActivity(packageManager) != null) {
                 val photoFile: File? = try {
@@ -385,7 +394,7 @@ class NoteEditActivity : AppCompatActivity(){
                 photoFile?.also {
                     val photoURI: Uri = FileProvider.getUriForFile(this, "com.example.gps_image_notes.fileprovider", it)
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
                 }
             } else {
                 Toast.makeText(this, R.string.error_nocamera, Toast.LENGTH_SHORT).show()
@@ -394,9 +403,9 @@ class NoteEditActivity : AppCompatActivity(){
     }
 
     private fun pickFromGallery() {
-        if (checkAndRequestPermissions()) {
+        if (checkAndRequestPermissions(REQUEST_PICK_FROM_GALLERY)) {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            startActivityForResult(intent, REQUEST_IMAGE_PICK)
+            startActivityForResult(intent, REQUEST_PICK_FROM_GALLERY)
         }
     }
 
@@ -411,9 +420,8 @@ class NoteEditActivity : AppCompatActivity(){
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
-                REQUEST_IMAGE_CAPTURE -> {
+                REQUEST_TAKE_PHOTO -> {
                     val file = File(currentImagePath)
-//                    Toast.makeText(this, "Akt.Photo: $currentImagePath", Toast.LENGTH_LONG).show()
                     if (file.exists()) {
                         imageUri = Uri.fromFile(file)
                         noteImageView.setImageURI(imageUri)
@@ -421,7 +429,7 @@ class NoteEditActivity : AppCompatActivity(){
                         Toast.makeText(this, R.string.error_noimage, Toast.LENGTH_SHORT).show()
                     }
                 }
-                REQUEST_IMAGE_PICK -> {
+                REQUEST_PICK_FROM_GALLERY -> {
                     val uri = data?.data
                     uri?.let {
                         currentImagePath = getPathFromUri(it)
@@ -444,29 +452,38 @@ class NoteEditActivity : AppCompatActivity(){
         return path
     }
 
-    private fun checkAndRequestPermissions(): Boolean {
+    private fun checkAndRequestPermissions(requestCode: Int): Boolean {
         val permissions = mutableListOf<String>()
 
-        // Add CAMERA permission
-        permissions.add(Manifest.permission.CAMERA)
-
-        // Add media/image permissions based on Android version
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
-        } else {
-            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        // Add permissions based on the request
+        when (requestCode) {
+            REQUEST_TAKE_PHOTO -> {
+                permissions.add(Manifest.permission.CAMERA)
+            }
+            REQUEST_PICK_FROM_GALLERY -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+                } else {
+                    permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+            }
+            REQUEST_LOCATION_WEATHER -> {
+                permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+                permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            }
         }
 
-        // Check which permissions are not granted yet
+        // Check whether permissions have already been granted
         val listPermissionsNeeded = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
-        // Request permissions if any are missing
         return if (listPermissionsNeeded.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toTypedArray(), 0)
+            // Request missing permissions
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toTypedArray(), requestCode)
             false
         } else {
+            // All permissions have already been granted
             true
         }
     }
