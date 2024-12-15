@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.media.Image
 import android.os.Bundle
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
@@ -22,9 +23,15 @@ class MainActivity : AppCompatActivity() {
 
         // Animate/Rotate Icon
         val icon = findViewById<ImageView>(R.id.icon)
-        val rotateAnimator = ObjectAnimator.ofFloat(icon, "rotation", 0f, 360f)
-        rotateAnimator.duration = 1000
-        rotateAnimator.start()
+
+        // Rotate Once
+//        val rotateAnimator = ObjectAnimator.ofFloat(icon, "rotation", 0f, 360f)
+//        rotateAnimator.duration = 1000
+//        rotateAnimator.start()
+
+        // Smooth Infinite Rotation
+        val rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate_infinite)
+        icon.startAnimation(rotateAnimation)
 
         // Set OnClickListener
         buttonLogin.setOnClickListener{

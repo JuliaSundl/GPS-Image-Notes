@@ -1,87 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/noteEdit"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <!-- Toolbar bleibt oben fixiert -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/blue"
+        android:background="@color/lightblue"
         app:titleTextColor="@color/white"
-        android:text=""/>
+        android:layout_gravity="top"
+        android:text="" />
 
-    <EditText
-        android:id="@+id/editTitle"
-        style="@style/ListItem.NewTitle"
+    <!-- Der scrollbare Bereich -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="@string/title"
-        android:inputType="text" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/editMessage"
-        style="@style/ListItem.NewMessage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="@string/message"
-        android:inputType="text" />
+        <LinearLayout
+            android:id="@+id/noteEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <Button
-        android:id="@+id/addButton"
-        style="@style/ListItem.AddButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/add" />
+            <EditText
+                android:id="@+id/editTitle"
+                style="@style/ListItem.NewTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="@string/title"
+                android:inputType="text" />
 
-    <Button
-        android:id="@+id/locationButton"
-        style="@style/ListItem.AddButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/location"
-        android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/editMessage"
+                style="@style/ListItem.NewMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="@string/message"
+                android:inputType="text" />
 
-    <TextView
-        android:id="@+id/latitudeTextView"
-        style="@style/ListItem.NewMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="25dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/latitude" />
+            <Button
+                android:id="@+id/addButton"
+                style="@style/ListItem.AddButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/blue"
+                android:text="@string/add" />
 
-    <TextView
-        android:id="@+id/longitudeTextView"
-        style="@style/ListItem.NewMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="25dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/longitude" />
+            <Button
+                android:id="@+id/locationButton"
+                style="@style/ListItem.AddButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/location"
+                android:backgroundTint="@color/glootie"
+                android:layout_marginTop="16dp" />
 
-    <Button
-        android:id="@+id/selectImageButton"
-        style="@style/ListItem.AddButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btImage"
-        android:layout_marginTop="16dp" />
+            <TextView
+                android:id="@+id/latitudeTextView"
+                style="@style/ListItem.NewMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/latitude" />
 
-    <ImageView
-        android:id="@+id/noteImageView"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginTop="16dp"
-        android:scaleType="centerCrop"/>
-<!--        android:src="@drawable/ic_placeholder"-->
+            <TextView
+                android:id="@+id/longitudeTextView"
+                style="@style/ListItem.NewMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/longitude" />
 
-</LinearLayout>
+            <Button
+                android:id="@+id/selectImageButton"
+                style="@style/ListItem.AddButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btImage"
+                android:backgroundTint="@color/glootie"
+                android:layout_marginTop="16dp" />
+
+<!--            <ImageView-->
+<!--                android:id="@+id/noteImageView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:scaleType="centerInside"-->
+<!--                android:adjustViewBounds="true" />-->
+            <!-- android:src="@drawable/ic_placeholder" -->
+
+            <ImageView
+                android:id="@+id/noteImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="16dp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true" />
+
+            <Button
+                android:id="@+id/selectWheaterButton"
+                style="@style/ListItem.AddButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btWeather"
+                android:backgroundTint="@color/lightblue" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

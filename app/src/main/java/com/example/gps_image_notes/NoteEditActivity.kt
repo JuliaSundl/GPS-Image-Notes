@@ -43,7 +43,7 @@ import java.util.*
 class NoteEditActivity : AppCompatActivity(){
 
     var noteId: Int = -1
-    var currentPhotoPath: String? = null
+    var currentImagePath: String? = null
     private lateinit var db: NoteDatabase
     private lateinit var noteDao: NoteDao
 
@@ -109,25 +109,18 @@ class NoteEditActivity : AppCompatActivity(){
                 return@setOnClickListener
             }
 
-            val mediaPlayer: MediaPlayer
-
             // Insert or update data in the database
             if (noteId >= 0) {
                 // Update Note
-                noteDao.update(Note(newTitle, newMessage, newLatitude, newLongitude, currentPhotoPath, noteId))
+                noteDao.update(Note(newTitle, newMessage, newLatitude, newLongitude, currentImagePath, noteId))
                 Toast.makeText(this@NoteEditActivity, R.string.updated, Toast.LENGTH_LONG).show()
-
-                // Play update sound
-                mediaPlayer = MediaPlayer.create(this, R.raw.match)
             } else {
                 // Insert Note
-                noteDao.insertAll(Note(newTitle, newMessage, newLatitude, newLongitude, currentPhotoPath))
+                noteDao.insertAll(Note(newTitle, newMessage, newLatitude, newLongitude, currentImagePath))
                 Toast.makeText(this@NoteEditActivity, R.string.inserted, Toast.LENGTH_LONG).show()
-
-                // Play insert sound
-                mediaPlayer = MediaPlayer.create(this, R.raw.gunshot_sound)
             }
 
+            val mediaPlayer = MediaPlayer.create(this, R.raw.match)
             // Start the appropriate sound
             mediaPlayer.start()
 
@@ -161,13 +154,9 @@ class NoteEditActivity : AppCompatActivity(){
 
         // Choose Image oder take Picture
         selectImageButton.setOnClickListener {
-//            val photo = "" + R.string.photo
-//            val gallery = "" + R.string.gallery
-//            Toast.makeText(this@NoteEditActivity, "Photo:  $photo", Toast.LENGTH_SHORT).show()
-//            Toast.makeText(this@NoteEditActivity, "Gallery:  $gallery", Toast.LENGTH_SHORT).show()
-
-//            val options = arrayOf(R.string.photo, R.string.gallery)
-            val options = arrayOf("Take Photo","From Gallery")
+            val photo = getString(R.string.photo)
+            val gallery = getString(R.string.gallery)
+            val options = arrayOf(photo,gallery)
             val builder = AlertDialog.Builder(this)
 
             builder.setTitle(R.string.chooseSource)
@@ -182,7 +171,6 @@ class NoteEditActivity : AppCompatActivity(){
     }
 
     private fun showNoteDetails(note: Note) {
-
         var noteTitle:String = note.title.toString()
         var noteMessage:String  = note.message.toString()
         var noteLongitude:String = note.longitude.orEmpty()
@@ -201,6 +189,7 @@ class NoteEditActivity : AppCompatActivity(){
 
         note.image?.let { path ->
             val file = File(path)
+            currentImagePath = path
             if (file.exists()) {
                 val uri = Uri.fromFile(file)
                 noteImageView.setImageURI(uri)
@@ -235,7 +224,7 @@ class NoteEditActivity : AppCompatActivity(){
             // Delete Note, if ID is valid
             if (noteId >= 0) {
                 noteDao.delete(Note(id = noteId, title = "", message = "", latitude = "", longitude = "", image = ""))
-                MediaPlayer.create(this, R.raw.gunshot_sound).start()
+                MediaPlayer.create(this, R.raw.match).start()
                 Toast.makeText(this@NoteEditActivity, R.string.deleted, Toast.LENGTH_LONG).show()
                 finish()
             } else {
@@ -309,7 +298,7 @@ class NoteEditActivity : AppCompatActivity(){
             val photoFile: File? = try {
                 createImageFile() // Diese Methode erstellt die Bilddatei
             } catch (ex: IOException) {
-                Log.e("NoteEditActivity", "Error occurred while creating the file", ex)
+//                Log.e("NoteEditActivity", "Error occurred while creating the file", ex)
                 null
             }
             photoFile?.also {
@@ -318,8 +307,8 @@ class NoteEditActivity : AppCompatActivity(){
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
             }
         } else {
-            Log.e("NoteEditActivity", "No activity found to handle the intent")
-            Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show()
+//            Log.e("NoteEditActivity", "No activity found to handle the intent")
+            Toast.makeText(this, R.string.error_nocamera, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -332,7 +321,7 @@ class NoteEditActivity : AppCompatActivity(){
     private fun createImageFile(): File {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply { currentPhotoPath = absolutePath }
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply { currentImagePath = absolutePath }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -340,19 +329,19 @@ class NoteEditActivity : AppCompatActivity(){
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 REQUEST_IMAGE_CAPTURE -> {
-                    val file = File(currentPhotoPath)
-//                    Toast.makeText(this, "Akt.Photo: $currentPhotoPath", Toast.LENGTH_LONG).show()
+                    val file = File(currentImagePath)
+//                    Toast.makeText(this, "Akt.Photo: $currentImagePath", Toast.LENGTH_LONG).show()
                     if (file.exists()) {
                         imageUri = Uri.fromFile(file)
                         noteImageView.setImageURI(imageUri)
                     } else {
-                        Toast.makeText(this, "Error: Image not found", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, R.string.error_noimage, Toast.LENGTH_SHORT).show()
                     }
                 }
                 REQUEST_IMAGE_PICK -> {
                     val uri = data?.data
                     uri?.let {
-                        currentPhotoPath = getPathFromUri(it)
+                        currentImagePath = getPathFromUri(it)
                         noteImageView.setImageURI(it)
                     }
                 }
@@ -360,11 +349,6 @@ class NoteEditActivity : AppCompatActivity(){
         }
     }
 
-    /**
-     * Retrieves the file path from a URI.
-     * @param uri The URI to retrieve the path from.
-     * @return The file path.
-     */
     private fun getPathFromUri(uri: Uri): String {
         var path = ""
         val projection = arrayOf(MediaStore.Images.Media.DATA)
@@ -377,23 +361,6 @@ class NoteEditActivity : AppCompatActivity(){
         return path
     }
 
-//    private fun saveImageToInternalStorage(bitmap: Bitmap): Uri {
-//        val filename = "${System.currentTimeMillis()}.jpg"
-////        Toast.makeText(this, "Filename: $filename", Toast.LENGTH_LONG).show()
-//        val file = File(filesDir, filename)
-//        val fos = FileOutputStream(file)
-//        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-//        fos.close()
-////        val helpUri = Uri.fromFile(file)
-////        Toast.makeText(this, "Uri: $helpUri", Toast.LENGTH_LONG).show()
-////        return helpUri
-//        return Uri.fromFile(file)
-//    }
-
-    /**
-     * Checks and requests necessary permissions for camera and storage access.
-     * @return True if permissions are already granted, false otherwise.
-     */
     private fun checkAndRequestPermissions(): Boolean {
         val permissions = mutableListOf(Manifest.permission.CAMERA)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

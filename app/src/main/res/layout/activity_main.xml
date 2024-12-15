@@ -8,10 +8,14 @@
     android:background="@color/white"
     tools:context=".MainActivity">
 
+    <!--        android:src="@drawable/ic_event_gps"/>-->
+
     <ImageView
         android:id="@+id/icon"
         style="@style/Image"
-        android:src="@drawable/ic_event_note"/>
+        android:layout_width="149dp"
+        android:layout_height="133dp"
+        android:src="@drawable/ic_event_icon" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -27,6 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="14dp"
+        android:backgroundTint="@color/blue"
         style="@style/Button"
         android:text="@string/login"/>
 </FrameLayout>

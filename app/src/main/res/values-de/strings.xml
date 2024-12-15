@@ -4,7 +4,7 @@
     <string name="signed_in">Angemeldet</string>
     <string name="title">Notiz-Titel</string>
     <string name="message">Text</string>
-    <string name="add">Hinzu</string>
+    <string name="add">Speichern</string>
     <string name="delete">Löschen</string>
     <string name="saved">Notiz gespeichert</string>
     <string name="back">Zurück</string>
@@ -34,4 +34,8 @@
     <string name="photo">"Foto machen"</string>
     <string name="gallery">"Aus Galerie"</string>
     <string name="chooseSource">Quelle auswählen</string>
+    <string name="error_nocamera">Keine Kamera gefunden</string>
+    <string name="error_noimage">Bild nicht gefunden</string>
+
+    <string name="btWeather">Wetter anzeigen</string>
 </resources>

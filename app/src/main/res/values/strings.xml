@@ -4,7 +4,7 @@
     <string name="signed_in">Signed in</string>
     <string name="title">Note-Title</string>
     <string name="message">Text</string>
-    <string name="add">New</string>
+    <string name="add">Save</string>
     <string name="delete">Delete</string>
     <string name="saved">Note saved</string>
     <string name="back">Return</string>
@@ -34,4 +34,8 @@
     <string name="photo">"Take Photo"</string>
     <string name="gallery">"From Gallery"</string>
     <string name="chooseSource">Choose Source</string>
+    <string name="error_nocamera">No camera app found</string>
+    <string name="error_noimage">Image not found</string>
+
+    <string name="btWeather">Show Weather</string>
 </resources>

@@ -5,7 +5,7 @@
         <!-- Customize your light theme here. -->
 
         <!-- Set primary-color of the app, to change color of buttons etc. -->
-        <item name="colorPrimary">@color/blue</item>
+        <item name="colorPrimary">@color/lightblue</item>
     </style>
 
     <style name="Theme.GPSImageNotes" parent="Base.GPSImageNotes" />
@@ -26,7 +26,7 @@
 
     <!-- Set style for button -->
     <style name="Button">
-        <item name="android:textSize">32sp</item>
+        <item name="android:textSize">28sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">normal</item>
     </style>
@@ -61,7 +61,7 @@
     </style>
 
     <style name="ListItem.AddButton">
-        <item name="android:textSize">28sp</item>
+        <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">normal</item>
     </style>
