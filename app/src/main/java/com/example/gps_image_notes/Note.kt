@@ -11,5 +11,7 @@ data class Note (
     @ColumnInfo(name="latitude") var latitude: String? = null,
     @ColumnInfo(name="longitude") var longitude: String? = null,
     @ColumnInfo(name="image") var image: String? = null,
+    @ColumnInfo(name="temp") var temp: String? = null,
+    @ColumnInfo(name="weather") var weather: String? = null,
     @PrimaryKey (autoGenerate = true) val id:Int = 0
 )

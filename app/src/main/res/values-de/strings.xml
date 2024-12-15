@@ -38,4 +38,8 @@
     <string name="error_noimage">Bild nicht gefunden</string>
 
     <string name="btWeather">Wetter anzeigen</string>
+    <string name="temperature">Temperatur</string>
+    <string name="weatherInfo">Beschreibung</string>
+    <string name="error_weather">Fehler beim Abrufen der Wetterdaten</string>
+    <string name="error_network">Netzwerkfehler</string>
 </resources>

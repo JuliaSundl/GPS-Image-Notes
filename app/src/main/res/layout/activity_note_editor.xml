@@ -114,12 +114,30 @@
                 android:adjustViewBounds="true" />
 
             <Button
-                android:id="@+id/selectWheaterButton"
+                android:id="@+id/weatherButton"
                 style="@style/ListItem.AddButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/btWeather"
                 android:backgroundTint="@color/lightblue" />
+
+            <TextView
+                android:id="@+id/tempTextView"
+                style="@style/ListItem.NewMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/temperature" />
+
+            <TextView
+                android:id="@+id/weatherTextView"
+                style="@style/ListItem.NewMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/weatherInfo" />
         </LinearLayout>
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

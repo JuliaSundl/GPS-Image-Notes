@@ -3,6 +3,7 @@ package com.example.gps_image_notes
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -18,7 +19,6 @@ import androidx.core.app.ActivityCompat
 import androidx.room.Room
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
@@ -27,7 +27,6 @@ import android.os.Environment
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -50,13 +49,17 @@ class NoteEditActivity : AppCompatActivity(){
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var latitudeTextView: TextView
     private lateinit var longitudeTextView: TextView
+    private lateinit var temperatureTextView: TextView
+    private lateinit var weatherDescTextView: TextView
+    private var showLocation: Boolean = false
+    private var showWeather: Boolean = false
 
     private val REQUEST_IMAGE_CAPTURE = 1
     private val REQUEST_IMAGE_PICK = 2
     private var imageUri: Uri? = null // Saves URI of the Image
     private lateinit var noteImageView: ImageView
 
-    @SuppressLint("NewApi")
+    @SuppressLint("NewApi", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Connect Main-File with Layout-File
@@ -65,8 +68,6 @@ class NoteEditActivity : AppCompatActivity(){
         // Set up Toolbar
         val toolbar = findViewById<Toolbar>(R.id.toolbar2)
         setSupportActionBar(toolbar)
-
-        // TODO Insert Back-Button in Toolbar
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
 
         toolbar.setNavigationOnClickListener {
@@ -97,11 +98,15 @@ class NoteEditActivity : AppCompatActivity(){
             val messageEditText = findViewById<EditText>(R.id.editMessage)
             val latitudeTextView = findViewById<TextView>(R.id.latitudeTextView)
             val longitudeTextView = findViewById<TextView>(R.id.longitudeTextView)
+            val tempTextView = findViewById<TextView>(R.id.tempTextView)
+            val weatherDescTextView = findViewById<TextView>(R.id.weatherTextView)
 
             val newTitle = titleEditText.text.toString().trim()
             val newMessage = messageEditText.text.toString().trim()
             val newLatitude = latitudeTextView.text.toString().trim()
             val newLongitude = longitudeTextView.text.toString().trim()
+            val newTemp = tempTextView.text.toString().trim()
+            val newWeatherDesc = weatherDescTextView.text.toString().trim()
 
             // Check if the fields are empty
             if (newTitle.isEmpty() || newMessage.isEmpty()) {
@@ -112,16 +117,16 @@ class NoteEditActivity : AppCompatActivity(){
             // Insert or update data in the database
             if (noteId >= 0) {
                 // Update Note
-                noteDao.update(Note(newTitle, newMessage, newLatitude, newLongitude, currentImagePath, noteId))
+                noteDao.update(Note(newTitle, newMessage, newLatitude, newLongitude, currentImagePath, newTemp, newWeatherDesc, noteId))
                 Toast.makeText(this@NoteEditActivity, R.string.updated, Toast.LENGTH_LONG).show()
             } else {
                 // Insert Note
-                noteDao.insertAll(Note(newTitle, newMessage, newLatitude, newLongitude, currentImagePath))
+                noteDao.insertAll(Note(newTitle, newMessage, newLatitude, newLongitude, currentImagePath, newTemp, newWeatherDesc))
                 Toast.makeText(this@NoteEditActivity, R.string.inserted, Toast.LENGTH_LONG).show()
             }
 
+            // Play Sound
             val mediaPlayer = MediaPlayer.create(this, R.raw.match)
-            // Start the appropriate sound
             mediaPlayer.start()
 
             // Vibrate
@@ -142,9 +147,11 @@ class NoteEditActivity : AppCompatActivity(){
         latitudeTextView = findViewById(R.id.latitudeTextView)
         longitudeTextView = findViewById(R.id.longitudeTextView)
 
-        // Initialize Button and add ClickListener
+        // Initialize ShowLocationButton and add ClickListener
         val locationButton = findViewById<Button>(R.id.locationButton)
         locationButton.setOnClickListener {
+            showLocation = true
+            showWeather = false
             getLocation()
         }
 
@@ -163,10 +170,18 @@ class NoteEditActivity : AppCompatActivity(){
             builder.setItems(options) { _, which ->
                 when (which) {
                     0 -> takePhoto() // Camera
-                    1 -> pickFromGallery() // Gallery
+                    1 -> pickFromGallery()// Gallery
                 }
             }
             builder.show()
+        }
+
+        // Initialize ShowWeatherButton and add ClickListener
+        val weatherButton = findViewById<Button>(R.id.weatherButton)
+        weatherButton.setOnClickListener {
+            showLocation = false
+            showWeather = true
+            getWeatherInfo()
         }
     }
 
@@ -175,6 +190,8 @@ class NoteEditActivity : AppCompatActivity(){
         var noteMessage:String  = note.message.toString()
         var noteLongitude:String = note.longitude.orEmpty()
         var noteLatitude:String = note.latitude.orEmpty()
+        var noteTemp:String = note.temp.orEmpty()
+        var noteWeather:String = note.weather.orEmpty()
 
         // Show Data in Editfields and TextViews
         findViewById<EditText>(R.id.editTitle).setText(noteTitle)
@@ -184,6 +201,11 @@ class NoteEditActivity : AppCompatActivity(){
         longitudeTextView = findViewById(R.id.longitudeTextView)
         latitudeTextView.text = noteLatitude
         longitudeTextView.text = noteLongitude
+
+        temperatureTextView = findViewById(R.id.tempTextView)
+        weatherDescTextView = findViewById(R.id.weatherTextView)
+        temperatureTextView.text = noteTemp
+        weatherDescTextView.text = noteWeather
 
         noteImageView = findViewById(R.id.noteImageView)
 
@@ -283,38 +305,86 @@ class NoteEditActivity : AppCompatActivity(){
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            getLocation()
+        if (requestCode == 0 && grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+            takePhoto()
+        } else if (requestCode == 1 && grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+            pickFromGallery()
+        } else if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (showLocation) { getLocation() }
+            if (showWeather) { getWeatherInfo() }
+        } else if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            if (showLocation) {
+                latitudeTextView.text = getString(R.string.permission)
+                longitudeTextView.text = getString(R.string.permission)
+            }
+            if (showWeather) {
+                temperatureTextView.text = getString(R.string.permission)
+                weatherDescTextView.text = getString(R.string.permission)
+            }
         } else {
-            latitudeTextView.text = getString(R.string.permission)
-            longitudeTextView.text = getString(R.string.permission)
+            Toast.makeText(this, R.string.permission, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun getWeatherInfo() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Get Permission
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                100
+            )
+            return
+        }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                fetchWeather(location.latitude, location.longitude)
+            } else {
+            // If no Location is available
+            temperatureTextView.text = getString(R.string.available)
+            weatherDescTextView.text = getString(R.string.available)
+            }
+        }.addOnFailureListener {
+            // Error handling
+            temperatureTextView.text = getString(R.string.error)
+            weatherDescTextView.text = getString(R.string.error)
         }
     }
 
     @SuppressLint("QueryPermissionsNeeded")
     private fun takePhoto() {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
-            val photoFile: File? = try {
-                createImageFile() // Diese Methode erstellt die Bilddatei
-            } catch (ex: IOException) {
-//                Log.e("NoteEditActivity", "Error occurred while creating the file", ex)
-                null
+        if (checkAndRequestPermissions()) {
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            if (takePictureIntent.resolveActivity(packageManager) != null) {
+                val photoFile: File? = try {
+                    createImageFile()
+                } catch (ex: IOException) {
+                    null
+                }
+                photoFile?.also {
+                    val photoURI: Uri = FileProvider.getUriForFile(this, "com.example.gps_image_notes.fileprovider", it)
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+                }
+            } else {
+                Toast.makeText(this, R.string.error_nocamera, Toast.LENGTH_SHORT).show()
             }
-            photoFile?.also {
-                val photoURI: Uri = FileProvider.getUriForFile(this, "com.example.gps_image_notes.fileprovider", it)
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-            }
-        } else {
-//            Log.e("NoteEditActivity", "No activity found to handle the intent")
-            Toast.makeText(this, R.string.error_nocamera, Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun pickFromGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQUEST_IMAGE_PICK)
+        if (checkAndRequestPermissions()) {
+            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            startActivityForResult(intent, REQUEST_IMAGE_PICK)
+        }
     }
 
     @Throws(IOException::class)
@@ -368,7 +438,11 @@ class NoteEditActivity : AppCompatActivity(){
         } else {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
-        val listPermissionsNeeded = permissions.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
+
+        val listPermissionsNeeded = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
         return if (listPermissionsNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toTypedArray(), 0)
             false
@@ -377,4 +451,29 @@ class NoteEditActivity : AppCompatActivity(){
         }
     }
 
+    private fun fetchWeather(latitude: Double, longitude: Double) {
+        val apiKey = "c45850e37187a2a81e574cc7db83578f" // API key for OpenWeatherMap.org
+        val language = Locale.getDefault().language
+        val apiLanguage = if (language in listOf("de", "en", "es", "fr")) language else "en"
+
+        RetrofitInstance.api.getWeather(latitude, longitude, apiKey, lang = apiLanguage).enqueue(object : retrofit2.Callback<WeatherResponse> {
+            override fun onResponse(call: retrofit2.Call<WeatherResponse>, response: retrofit2.Response<WeatherResponse>) {
+                if (response.isSuccessful) {
+                    val weather = response.body()
+                    val temperature = weather?.main?.temp
+                    val description = weather?.weather?.get(0)?.description
+
+                    // Show Weather Infos in App
+                    findViewById<TextView>(R.id.tempTextView).text = getString(R.string.temperature) + ": $temperature °C"
+                    findViewById<TextView>(R.id.weatherTextView).text = getString(R.string.weatherInfo) + ": $description"
+                } else {
+                    Toast.makeText(this@NoteEditActivity, R.string.error_weather, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: retrofit2.Call<WeatherResponse>, t: Throwable) {
+                Toast.makeText(this@NoteEditActivity, R.string.error_network, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 }
