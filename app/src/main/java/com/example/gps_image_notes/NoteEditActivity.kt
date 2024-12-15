@@ -28,6 +28,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -130,11 +131,12 @@ class NoteEditActivity : AppCompatActivity(){
             mediaPlayer.start()
 
             // Vibrate
-            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            if (vibrator.hasVibrator()) {
-                val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
-                vibrator.vibrate(vibrationEffect)
-            }
+            vibrate()
+//            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+//            if (vibrator.hasVibrator()) {
+//                val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
+//                vibrator.vibrate(vibrationEffect)
+//            }
 
             // Finish Activity
             finish()
@@ -185,6 +187,15 @@ class NoteEditActivity : AppCompatActivity(){
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun vibrate() {
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (vibrator.hasVibrator()) {
+            val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
+            vibrator.vibrate(vibrationEffect)
+        }
+    }
+
     private fun showNoteDetails(note: Note) {
         var noteTitle:String = note.title.toString()
         var noteMessage:String  = note.message.toString()
@@ -226,7 +237,6 @@ class NoteEditActivity : AppCompatActivity(){
         return super.onCreateOptionsMenu(menu)
     }
 
-    // TODO Delete Note from Database
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.delete){
             showDeleteDialog()
@@ -247,6 +257,8 @@ class NoteEditActivity : AppCompatActivity(){
             if (noteId >= 0) {
                 noteDao.delete(Note(id = noteId, title = "", message = "", latitude = "", longitude = "", image = ""))
                 MediaPlayer.create(this, R.raw.match).start()
+                // Vibrate
+                vibrate()
                 Toast.makeText(this@NoteEditActivity, R.string.deleted, Toast.LENGTH_LONG).show()
                 finish()
             } else {
@@ -432,17 +444,24 @@ class NoteEditActivity : AppCompatActivity(){
     }
 
     private fun checkAndRequestPermissions(): Boolean {
-        val permissions = mutableListOf(Manifest.permission.CAMERA)
+        val permissions = mutableListOf<String>()
+
+        // Add CAMERA permission
+        permissions.add(Manifest.permission.CAMERA)
+
+        // Add media/image permissions based on Android version
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
         } else {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
 
+        // Check which permissions are not granted yet
         val listPermissionsNeeded = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
+        // Request permissions if any are missing
         return if (listPermissionsNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toTypedArray(), 0)
             false
