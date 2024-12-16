@@ -40,7 +40,7 @@
 
     <string name="btWeather">Show Weather Info</string>
     <string name="temperature">Temperature</string>
-    <string name="weatherInfo">Description</string>
+    <string name="weatherInfo">Details</string>
     <string name="error_weather">Error fetching weather data</string>
     <string name="error_network">Network error</string>
 </resources>

@@ -38,9 +38,9 @@
     <string name="error_nocamera">Keine Kamera gefunden</string>
     <string name="error_noimage">Bild nicht gefunden</string>
 
-    <string name="btWeather">Wetter anzeigen</string>
+    <string name="btWeather">Wetterinfos anzeigen</string>
     <string name="temperature">Temperatur</string>
-    <string name="weatherInfo">Beschreibung</string>
+    <string name="weatherInfo">Details</string>
     <string name="error_weather">Fehler beim Abrufen der Wetterdaten</string>
     <string name="error_network">Netzwerkfehler</string>
 </resources>
