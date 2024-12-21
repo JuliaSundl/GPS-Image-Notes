@@ -3,6 +3,7 @@
     <!-- Base application theme. -->
     <style name="Base.GPSImageNotes" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
+        <item name="android:windowBackground">@color/white</item>
 
         <!-- Set primary-color of the app, to change color of buttons etc. -->
         <item name="colorPrimary">@color/lightblue</item>
@@ -10,21 +11,18 @@
 
     <style name="Theme.GPSImageNotes" parent="Base.GPSImageNotes" />
 
-    <!-- Set style for image -->
     <style name="Image">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_gravity">center</item>
     </style>
 
-    <!-- Set style for title -->
     <style name="Title">
         <item name="android:textSize">32sp</item>
         <item name="android:textColor">@color/blue</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <!-- Set style for button -->
     <style name="Button">
         <item name="android:textSize">28sp</item>
         <item name="android:textColor">@color/white</item>

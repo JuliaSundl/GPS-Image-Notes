@@ -19,6 +19,16 @@ class MainActivity : AppCompatActivity() {
         // Animate/Rotate Icon
         val icon = findViewById<ImageView>(R.id.icon)
 
+        // Select Icon & Button-Background depending on Mode
+        val nightModeFlags = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+        if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+            icon.setImageResource(R.drawable.ic_event_icon_night)
+            buttonLogin.setBackgroundColor(resources.getColor(R.color.blue, theme))
+        } else {
+            icon.setImageResource(R.drawable.ic_event_icon)
+            buttonLogin.setBackgroundColor(resources.getColor(R.color.glootie, theme))
+        }
+
         // Smooth Infinite Rotation
         val rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate_infinite)
         icon.startAnimation(rotateAnimation)

@@ -53,8 +53,9 @@
                 style="@style/ListItem.AddButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="@string/addButton"
                 android:backgroundTint="@color/blue"
-                android:text="@string/addButton" />
+                android:layout_marginTop="16dp" />
 
             <Button
                 android:id="@+id/locationButton"

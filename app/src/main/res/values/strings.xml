@@ -2,6 +2,7 @@
     <string name="app_name">GPS-Image-Notes</string>
     <string name="login">Login</string>
     <string name="signed_in">Signed in</string>
+
     <string name="title">Note-Title</string>
     <string name="message">Text</string>
     <string name="addButton">Save</string>

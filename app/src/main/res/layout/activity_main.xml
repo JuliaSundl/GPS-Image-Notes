@@ -5,10 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
     tools:context=".MainActivity">
-
-    <!--        android:src="@drawable/ic_event_gps"/>-->
 
     <ImageView
         android:id="@+id/icon"
@@ -31,7 +28,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="14dp"
-        android:backgroundTint="@color/glootie"
         style="@style/Button"
         android:text="@string/login"/>
 </FrameLayout>

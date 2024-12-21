@@ -31,20 +31,19 @@ class NoteAdapter(context:Context, var notes:List<Note>):BaseAdapter() {
             view = inflater.inflate(R.layout.list_item_view, parent, false)
 
             holder = ViewHolder(
-                // TODO Find views by ID: title and message
+                // Find views by ID: title and message
                 titleView = view.findViewById(R.id.titleView),
                 messageView = view.findViewById(R.id.messageView)
             )
 
-            // connect holder with view
+            // Connect holder with View
             view.tag = holder
         } else {
-            // recycle existing view
+            // Recycle existing View
             view = convertView
             holder = view.tag as ViewHolder
         }
 
-        // TODO Set values from note object
         val note: Note = getItem(position)
         holder.titleView.text = note.title
         holder.messageView.text = note.message

@@ -2,9 +2,11 @@
 <resources>
     <color name="blue">#496192</color>
     <color name="lightblue">#22A8A9</color>
+    <color name="glootie">#D4639E</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="darkgray">#595959</color>
     <color name="lightgray">#6C7B8B</color>
-    <color name="glootie">#D4639E</color>
+    <color name="background_light">@color/white</color>
+    <color name="background_dark">@color/black</color>
 </resources>

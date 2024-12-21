@@ -94,6 +94,7 @@ class NoteEditActivity : AppCompatActivity(){
         }
 
         val buttonAdd = findViewById<Button>(R.id.addButton)
+
         buttonAdd.setOnClickListener {
             val titleEditText = findViewById<EditText>(R.id.editTitle)
             val messageEditText = findViewById<EditText>(R.id.editMessage)
@@ -263,9 +264,13 @@ class NoteEditActivity : AppCompatActivity(){
             // Delete Note, if ID is valid
             if (noteId >= 0) {
                 noteDao.delete(Note(id = noteId, title = "", message = "", latitude = "", longitude = "", image = ""))
+
+                // Play Sound
                 MediaPlayer.create(this, R.raw.match).start()
+
                 // Vibrate
                 vibrate()
+
                 Toast.makeText(this@NoteEditActivity, R.string.deleted, Toast.LENGTH_LONG).show()
                 finish()
             } else {

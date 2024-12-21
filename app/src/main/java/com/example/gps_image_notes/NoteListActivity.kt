@@ -6,7 +6,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.AdapterView
 import android.widget.ListView
-//import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.room.Room
 
@@ -41,7 +40,6 @@ class NoteListActivity : AppCompatActivity() {
         listView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             // Get the clicked note
             val clickedNote = adapter.getItem(position)
-//            Toast.makeText(this, "Clicked: ${clickedNote.title}", Toast.LENGTH_SHORT).show()
 
             // Open NoteEditActivity
             val intent = Intent(this, NoteEditActivity::class.java).apply {
